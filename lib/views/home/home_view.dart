@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../meme_form/meme_form.dart';
+import '../meme_form/meme_form_view.dart';
 import 'my_home_page.dart';
 
-class Home extends StatelessWidget {
-  const Home({Key? key}) : super(key: key);
+class HomeView extends StatelessWidget {
+  const HomeView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class Home extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const MyHomePage(title: 'Meus Memes'),
-          '/meme-form': (context) => const MemeForm()
+          '/meme-form': (context) => const MemeFormView()
         });
   }
 }
