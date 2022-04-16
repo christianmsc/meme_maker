@@ -1,12 +1,11 @@
 import 'package:dio/dio.dart';
+import '../shared/config.dart';
 
 class MemeRepository {
-  final dio = Dio(BaseOptions(
-      baseUrl: 'https://ronreiter-meme-generator.p.rapidapi.com/',
-      headers: {
-        'X-RapidAPI-Host': 'ronreiter-meme-generator.p.rapidapi.com',
-        'X-RapidAPI-Key': '6833b165damshee5f472ae350193p1822a1jsn43bb7f0d8836'
-      }));
+  final dio = Dio(BaseOptions(baseUrl: Config.baseUrl, headers: {
+    'X-RapidAPI-Host': Config.apiHost,
+    'X-RapidAPI-Key': Config.apiKey
+  }));
 
   Future<List<String>> getImages() async {
     final response =
@@ -19,5 +18,14 @@ class MemeRepository {
     }
 
     return images;
+  }
+
+  Future<String> getImage(image, uppperText, bottomText) async {
+    bottomText = bottomText.replaceAll(' ', '+');
+    uppperText = uppperText.replaceAll(' ', '+');
+    final response = await dio.request(
+        'meme?meme=$image&top=$uppperText&bottom=$bottomText',
+        options: Options(method: 'GET'));
+    return response.data;
   }
 }

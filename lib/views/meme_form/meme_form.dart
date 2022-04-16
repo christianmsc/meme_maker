@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:meme_maker/shared/config.dart';
 
 class MemeForm extends StatefulWidget {
   final List<String> images;
@@ -16,7 +17,21 @@ class _MemeFormState extends State<MemeForm> {
 
   String bottomText = '';
 
-  String? urlImage;
+  String? imageName;
+
+  _setMeme() {
+    if (imageName == null) {
+      return SvgPicture.asset('assets/images/placeholder.svg');
+    } else {
+      final bottomTextModified =
+          bottomText.isNotEmpty ? bottomText.replaceAll(' ', '+') : '';
+      final uppperTextModified =
+          upperText.isNotEmpty ? upperText.replaceAll(' ', '+') : '';
+      return Image(
+          image: NetworkImage(Config.basePublicUrl +
+              'meme?meme=$imageName&top=$uppperTextModified&bottom=$bottomTextModified'));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +41,10 @@ class _MemeFormState extends State<MemeForm> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          SizedBox(
-              width: 180,
-              height: 180,
-              child: SvgPicture.asset('assets/images/placeholder.svg')),
+          SizedBox(width: 180, height: 180, child: _setMeme()),
           DropdownButton<String>(
             isExpanded: true,
-            value: urlImage,
+            value: imageName,
             icon: const Icon(Icons.arrow_downward, color: Colors.black54),
             elevation: 16,
             focusColor: Colors.red,
@@ -44,7 +56,7 @@ class _MemeFormState extends State<MemeForm> {
             ),
             onChanged: (String? newValue) {
               setState(() {
-                urlImage = newValue!;
+                imageName = newValue!;
               });
             },
             items: widget.images.map<DropdownMenuItem<String>>((String value) {
@@ -54,24 +66,40 @@ class _MemeFormState extends State<MemeForm> {
               );
             }).toList(),
           ),
-          TextField(
-              decoration: const InputDecoration(
-                  alignLabelWithHint: true, labelText: 'Frase de Cima'),
-              onChanged: (text) {
-                upperText = text;
+          Focus(
+              child: TextField(
+                  decoration: const InputDecoration(
+                      alignLabelWithHint: true, labelText: 'Frase de Cima'),
+                  onChanged: (text) {
+                    upperText = text;
+                  }),
+              onFocusChange: (hasFocus) {
+                if (!hasFocus) {
+                  setState(() {
+                    _setMeme();
+                  });
+                }
               }),
-          TextField(
-              decoration: const InputDecoration(
-                  alignLabelWithHint: true, labelText: 'Frase de Baixo'),
-              onChanged: (text) {
-                bottomText = text;
+          Focus(
+              child: TextField(
+                  decoration: const InputDecoration(
+                      alignLabelWithHint: true, labelText: 'Frase de Baixo'),
+                  onChanged: (text) {
+                    bottomText = text;
+                  }),
+              onFocusChange: (hasFocus) {
+                if (!hasFocus) {
+                  setState(() {
+                    _setMeme();
+                  });
+                }
               }),
           Padding(
             padding: const EdgeInsets.all(12),
             child: ElevatedButton(
               onPressed: () {
                 //checar se os campos foram preenchidos
-                if (urlImage == null) {
+                if (imageName == null) {
                   Fluttertoast.showToast(
                       msg: "Escolha pelo menos uma imagem",
                       toastLength: Toast.LENGTH_SHORT,
