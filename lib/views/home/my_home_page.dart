@@ -53,11 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
             AsyncSnapshot<List<MemeModel>> snapshot,
           ) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [CircularProgressIndicator()],
-              );
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasError || !snapshot.hasData) {
                 return const Text('Error');
