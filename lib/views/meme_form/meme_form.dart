@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:meme_maker/controllers/meme_controller.dart';
+import 'package:meme_maker/models/meme_model.dart';
 import 'package:meme_maker/shared/config.dart';
 
 class MemeForm extends StatefulWidget {
-  final List<String> images;
+  final MemeController memeController;
+  MemeModel? meme;
 
-  const MemeForm(this.images, {Key? key}) : super(key: key);
+  MemeForm(this.memeController, this.meme, {Key? key}) : super(key: key);
 
   @override
   State<MemeForm> createState() => _MemeFormState();
@@ -14,10 +17,16 @@ class MemeForm extends StatefulWidget {
 
 class _MemeFormState extends State<MemeForm> {
   String upperText = '';
-
   String bottomText = '';
-
   String? imageName;
+
+  _checkMemeForEdit() {
+    if (widget.meme != null) {
+      upperText = widget.meme!.upperText;
+      bottomText = widget.meme!.bottomText;
+      imageName = widget.meme!.image;
+    }
+  }
 
   _setMeme() {
     if (imageName == null) {
@@ -31,6 +40,12 @@ class _MemeFormState extends State<MemeForm> {
           image: NetworkImage(Config.basePublicUrl +
               'meme?meme=$imageName&top=$uppperTextModified&bottom=$bottomTextModified'));
     }
+  }
+
+   @override
+  void initState() {
+    super.initState();
+    _checkMemeForEdit();
   }
 
   @override
@@ -59,7 +74,8 @@ class _MemeFormState extends State<MemeForm> {
                 imageName = newValue!;
               });
             },
-            items: widget.images.map<DropdownMenuItem<String>>((String value) {
+            items: widget.memeController.images
+                .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(value),
@@ -67,7 +83,8 @@ class _MemeFormState extends State<MemeForm> {
             }).toList(),
           ),
           Focus(
-              child: TextField(
+              child: TextFormField(
+                  initialValue: upperText,
                   decoration: const InputDecoration(
                       alignLabelWithHint: true, labelText: 'Frase de Cima'),
                   onChanged: (text) {
@@ -81,7 +98,8 @@ class _MemeFormState extends State<MemeForm> {
                 }
               }),
           Focus(
-              child: TextField(
+              child: TextFormField(
+                  initialValue: bottomText,
                   decoration: const InputDecoration(
                       alignLabelWithHint: true, labelText: 'Frase de Baixo'),
                   onChanged: (text) {
@@ -97,7 +115,7 @@ class _MemeFormState extends State<MemeForm> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 //checar se os campos foram preenchidos
                 if (imageName == null) {
                   Fluttertoast.showToast(
@@ -109,17 +127,39 @@ class _MemeFormState extends State<MemeForm> {
                       textColor: Colors.white,
                       fontSize: 16.0);
                 } else {
-                  Fluttertoast.showToast(
-                      msg: "Meme criado!",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      timeInSecForIosWeb: 1,
-                      backgroundColor: Colors.green,
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                  try {
+                    if(widget.meme != null){
+                      widget.meme?.upperText = upperText;
+                      widget.meme?.bottomText = bottomText;
+                      widget.meme?.image = imageName.toString();
+                      await widget.memeController.update(widget.meme!);
+                    }
+                    else {
+                    await widget.memeController.create(MemeModel(
+                        null, imageName.toString(), upperText, bottomText));
+                    }
+                    Fluttertoast.showToast(
+                        msg: widget.meme != null ? "Meme editado!" : "Meme criado!",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.green,
+                        textColor: Colors.white,
+                        fontSize: 16.0);
+                    Navigator.pop(context);
+                  } catch (e) {
+                    Fluttertoast.showToast(
+                        msg: "Algo deu errado =(",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        fontSize: 16.0);
+                  }
                 }
               },
-              child: const Text('Criar'),
+              child: Text(widget.meme != null ? 'Editar' : 'Criar'),
             ),
           )
         ],

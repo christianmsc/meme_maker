@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:meme_maker/controllers/meme_controller.dart';
+import 'package:meme_maker/models/meme_model.dart';
 import 'package:meme_maker/views/meme_form/meme_form.dart';
 
-import '../../components/nav_bar_back.dart';
+import '../../components/nav_bar_edit.dart';
+import '../../components/nav_bar_no_action.dart';
 import '../../enums/request_state_enum.dart';
 
 class MemeFormView extends StatefulWidget {
@@ -13,16 +15,18 @@ class MemeFormView extends StatefulWidget {
 }
 
 class _MemeFormViewState extends State<MemeFormView> {
-  final String title = 'Criar Meme';
+  final String createTitle = 'Criar Meme';
+  final String editTitle = 'Editar Meme';
   final memeController = MemeController();
   List<String> images = [];
+  MemeModel? meme;
 
   _start() {
     return Container();
   }
 
   _success() {
-    return MemeForm(images);
+    return MemeForm(memeController, meme);
   }
 
   _error() {
@@ -33,7 +37,7 @@ class _MemeFormViewState extends State<MemeFormView> {
           const Text('Erro ao carregar os dados =('),
           ElevatedButton(
               onPressed: () async {
-                images = await memeController.getImages();
+                images = await memeController.getImagesFromApi();
               },
               child: const Text('Tentar Novamente'))
         ],
@@ -61,7 +65,7 @@ class _MemeFormViewState extends State<MemeFormView> {
   }
 
   void _getImages() async {
-    images = await memeController.getImages();
+    images = await memeController.getImagesFromApi();
   }
 
   @override
@@ -72,18 +76,14 @@ class _MemeFormViewState extends State<MemeFormView> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: title,
-        theme: ThemeData(
-          primarySwatch: Colors.red,
-        ),
-        home: Scaffold(
-            appBar: NavBarBack(title: title).build(context),
-            body: AnimatedBuilder(
-              animation: memeController.state,
-              builder: (context, child) {
-                return stateManagement(memeController.state.value);
-              },
-            )));
+    meme = ModalRoute.of(context)!.settings.arguments != null ? ModalRoute.of(context)!.settings.arguments as MemeModel : null;
+    return Scaffold(
+        appBar: meme != null ? NavBarEdit(title: editTitle, meme: meme!, memeController: memeController).build(context) : NavBarNoAction(title: createTitle).build(context),
+        body: AnimatedBuilder(
+          animation: memeController.state,
+          builder: (context, child) {
+            return stateManagement(memeController.state.value);
+          },
+        ));
   }
 }

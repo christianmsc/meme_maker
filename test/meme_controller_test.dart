@@ -11,7 +11,7 @@ main() {
     dotenv.testLoad(fileInput: File('test/.env').readAsStringSync());
     final memeController = MemeController();
     expect(memeController.state.value, RequestState.start);
-    await memeController.getImages();
+    await memeController.getImagesFromApi();
     expect(memeController.state.value, RequestState.success);
     expect(memeController.images.isNotEmpty, true);
   });
